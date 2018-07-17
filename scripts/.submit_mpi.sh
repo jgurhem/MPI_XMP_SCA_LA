@@ -13,8 +13,8 @@
 . ~/env_yml-xmp_impi.sh
 source /gpfs1l/opt/Intel/itac/8.1.0.024/bin/itacvars.sh
 
-
 cd /gpfsdata/jgurhem/res/
+rm -f *.bin
 
 DIR_EXE=/gpfshome/mds/staff/jgurhem/mpi/executables
 

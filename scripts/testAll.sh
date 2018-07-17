@@ -3,6 +3,7 @@
 . ~/mpi/scripts/load.sh
 
 cd /gpfsdata/jgurhem/res/
+rm -rf *.bin *.dat core.*
 
 size=9
 np=6
@@ -46,5 +47,5 @@ mpirun -n $np "$DIR_EXE"/inv $size
 "$DIR_EXE"/$mat lu.bin lu.dat $size $size
 echo a
 "$DIR_EXE"/$coo a.dat $size $size
-echo lu
+echo inv
 "$DIR_EXE"/$coo lu.dat $size $size

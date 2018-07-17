@@ -5,6 +5,8 @@ DIR_UTILS=~/mpi/utils
 DIR_EXE=~/mpi/executables
 DIR_SRC=~/mpi/sources
 
+rm -fv "$DIR_EXE"/*
+
 . ~/mpi/scripts/load.sh
 
 compileGCC() {
