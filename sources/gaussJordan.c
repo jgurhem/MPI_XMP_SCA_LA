@@ -166,24 +166,13 @@ testLoad (int size, int nbC, int world_size, int world_rank) {
     double *v, *m;
     struct timeval ts, te, t1, t2;
 
-    v = initVect (nbC, world_rank);
-    //printVect (v, nbC, world_rank, "v - ");
-    saveVect (v, nbC, world_rank, "v1.bin");
-    free (v);
-
-    m = initMat (size, nbC, world_rank);
-    //printMat (m, size, nbC, world_rank, "a - ");
-    MPI_Barrier (MPI_COMM_WORLD);
-    saveMat (m, size, nbC, world_rank, "m1,1.bin");
-    free (m);
-
     MPI_Barrier (MPI_COMM_WORLD);
     if (world_rank == 0) {
         gettimeofday (&ts, 0);
     }
 
-    m = loadMat (size, nbC, world_rank, "m1,1.bin");
-    v = loadVect (nbC, world_rank, "v1.bin");
+    m = loadMat (size, nbC, world_rank, "a.bin");
+    v = loadVect (nbC, world_rank, "b.bin");
 
     MPI_Barrier (MPI_COMM_WORLD);
     if (world_rank == 0) {
@@ -197,7 +186,7 @@ testLoad (int size, int nbC, int world_size, int world_rank) {
         gettimeofday (&t2, 0);
     }
     MPI_Barrier (MPI_COMM_WORLD);
-    saveVect (v, nbC, world_rank, "v2.bin");
+    saveVect (v, nbC, world_rank, "r.bin");
     MPI_Barrier (MPI_COMM_WORLD);
     if (world_rank == 0) {
         gettimeofday (&te, 0);
@@ -206,7 +195,7 @@ testLoad (int size, int nbC, int world_size, int world_rank) {
         printf ("%f\n", (te.tv_sec - ts.tv_sec) + (te.tv_usec - ts.tv_usec) / 1000000.0);
     }
     //printVect (v, nbC, world_rank, "r - ");
-    saveMat (m, size, nbC, world_rank, "m2,2.bin");
+    saveMat (m, size, nbC, world_rank, "a2.bin");
 
     free (m);
     free (v);

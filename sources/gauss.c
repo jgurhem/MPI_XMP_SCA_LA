@@ -265,25 +265,14 @@ testLoad (int size, int nbC, int world_size, int world_rank) {
     double *v, *m;
     struct timeval ts, te, t1, t2;
 
-    if (world_rank == 0) {
-        v = initVect (size);
-        //printVect (v, size,"v - ");
-        saveVect (v, size, "v1.bin");
-        free (v);
-    }
-
-    m = initMat (size, nbC, world_rank);
-    saveMat (m, size, nbC, world_rank, "m1,1.bin");
-    free (m);
-
     MPI_Barrier (MPI_COMM_WORLD);
     if (world_rank == 0) {
         gettimeofday (&ts, 0);
     }
 
-    m = loadMat (size, nbC, world_rank, "m1,1.bin");
+    m = loadMat (size, nbC, world_rank, "a.bin");
     if (world_rank == 0) {
-        v = loadVect (size, "v1.bin");
+        v = loadVect (size, "b.bin");
     }
 
     MPI_Barrier (MPI_COMM_WORLD);
