@@ -300,17 +300,17 @@ testLoad (int size, int nbC, int world_size, int world_rank) {
     }
     MPI_Barrier (MPI_COMM_WORLD);
 
-    //printMat (m, size,nbC, world_rank, "m - ");
-    saveMat (m, size, nbC, world_rank, "m2,2.bin");
-
     if (world_rank == 0) {
         //printVect (v,size, "r - ");
-        saveVect (v, size, "v2.bin");
+        saveVect (v, size, "r.bin");
         gettimeofday (&te, 0);
         printf ("%f\n", (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / 1000000.0);
         printf ("%f\n", (t2.tv_sec - ts.tv_sec) + (t2.tv_usec - ts.tv_usec) / 1000000.0);
         printf ("%f\n", (te.tv_sec - ts.tv_sec) + (te.tv_usec - ts.tv_usec) / 1000000.0);
     }
+
+    //printMat (m, size,nbC, world_rank, "m - ");
+    saveMat (m, size, nbC, world_rank, "a2.bin");
 
     free (m);
     if (world_rank == 0)
