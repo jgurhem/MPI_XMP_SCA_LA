@@ -24,6 +24,7 @@ compileMPI() {
 compileGCC cooToMat.c
 compileGCC binToASCII_mat_col.c
 compileGCC binToASCII_mat_row.c
+compileGCC cooInv.c
 
 compileSCA lu.c
 compileSCA sls.c
