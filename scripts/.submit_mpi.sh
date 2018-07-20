@@ -10,7 +10,7 @@
 #@ queue
 #
 
-. ~/env_yml-xmp_impi.sh
+. ~/mpi/scripts/load.sh
 source /gpfs1l/opt/Intel/itac/8.1.0.024/bin/itacvars.sh
 
 cd /gpfsdata/jgurhem/res/
@@ -20,7 +20,7 @@ DIR_EXE=/gpfshome/mds/staff/jgurhem/mpi/executables
 
 execRun(){
 
-t=( $(mpirun -n $LOADL_TOTAL_TASKS ./$3 $2) )
+t=( $(mpirun -n $LOADL_TOTAL_TASKS $3 $2) )
 echo ${t[*]}
 success="true"
 
