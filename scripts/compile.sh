@@ -25,6 +25,7 @@ compileGCC cooToMat.c
 compileGCC binToASCII_mat_col.c
 compileGCC binToASCII_mat_row.c
 compileGCC cooInv.c
+compileGCC cooLU.c
 
 compileSCA lu.c
 compileSCA sls.c
@@ -33,3 +34,6 @@ compileSCA genBin.c
 
 compileMPI gauss.c
 compileMPI gaussJordan.c
+compileMPI mpi_sls_lu.c
+compileMPI mpi_lu.c
+compileMPI mpi_gj_inv.c
