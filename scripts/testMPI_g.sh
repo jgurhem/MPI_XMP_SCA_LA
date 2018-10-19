@@ -18,14 +18,14 @@ compileMPI() {
     mpicc -Wall "$DIR_SRC"/$1 -o "$DIR_EXE"/${1%.*}
 }
 
-compileMPI gauss.c
+compileMPI mpi_sls_g.c
 
 
 coo=cooToMat
 mat=binToASCII_mat_col
 
 mpirun -n $np "$DIR_EXE"/genBin $size
-mpirun -n $np "$DIR_EXE"/gauss $size
+mpirun -n $np "$DIR_EXE"/mpi_sls_g $size
 "$DIR_EXE"/$mat a.bin a.dat $size $size
 "$DIR_EXE"/$mat b.bin b.dat $size $nrhs
 "$DIR_EXE"/$mat r.bin r.dat $size $nrhs

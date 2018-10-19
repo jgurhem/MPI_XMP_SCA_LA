@@ -37,9 +37,9 @@ echo "Poincare;$LOADL_TOTAL_TASKS;NODES;$1;MPILS;$2;$LOADL_TOTAL_TASKS;$(date);-
 }
 
 mpirun -n $LOADL_TOTAL_TASKS "$DIR_EXE"/genBin SIZE
-execRun blockGauss SIZE "$DIR_EXE"/gauss
-execRun blockGaussJordan SIZE "$DIR_EXE"/gaussJordan
+execRun blockGauss SIZE "$DIR_EXE"/mpi_sls_g
+execRun blockGaussJordan SIZE "$DIR_EXE"/mpi_sls_gj
 execRun blockLU SIZE "$DIR_EXE"/mpi_lu
 execRun blockLUsolveLS SIZE "$DIR_EXE"/mpi_sls_lu
-execRun gaussJordan_inv SIZE "$DIR_EXE"/mpi_gj_inv
+execRun gaussJordan_inv SIZE "$DIR_EXE"/mpi_inv_gj
 

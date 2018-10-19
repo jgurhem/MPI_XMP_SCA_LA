@@ -18,7 +18,7 @@ compileMPI() {
     mpicc -Wall "$DIR_SRC"/$1 -o "$DIR_EXE"/${1%.*}
 }
 
-compileMPI mpi_gj_inv.c
+compileMPI mpi_inv_gj.c
 
 
 coo=cooToMat
@@ -26,7 +26,7 @@ inv=cooInv
 mat=binToASCII_mat_row
 
 mpirun -n $np "$DIR_EXE"/genBin $size
-mpirun -n $np "$DIR_EXE"/mpi_gj_inv $size
+mpirun -n $np "$DIR_EXE"/mpi_inv_gj $size
 "$DIR_EXE"/$mat a.bin a.dat $size $size
 "$DIR_EXE"/$mat inv.bin inv.dat $size $size
 echo a

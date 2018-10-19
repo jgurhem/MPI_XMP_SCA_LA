@@ -18,7 +18,7 @@ compileMPI() {
     mpicc -Wall "$DIR_SRC"/$1 -o "$DIR_EXE"/${1%.*}
 }
 
-compileMPI dgaxpxmv.c
+compileMPI mpi_dgeaxpxmv.c
 
 
 coo=cooToMat
@@ -27,7 +27,7 @@ mat=binToASCII_mat_row
 echo generating data
 mpirun -n $np "$DIR_EXE"/genBin $size
 echo dgaxpxmv
-mpirun -n $np "$DIR_EXE"/dgaxpxmv $size
+mpirun -n $np "$DIR_EXE"/mpi_dgeaxpxmv $size
 echo converting a
 "$DIR_EXE"/$mat a.bin a.dat $size $size
 echo converting b

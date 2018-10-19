@@ -36,7 +36,7 @@ echo "Poincare;$LOADL_TOTAL_TASKS;NODES;$1;SCALS;$2;$LOADL_TOTAL_TASKS;$(date);-
 }
 
 mpirun -n $LOADL_TOTAL_TASKS "$DIR_EXE"/genBin SIZE
-execRun ScalapackLU SIZE "$DIR_EXE"/lu
-execRun ScalapackLU_sls SIZE "$DIR_EXE"/sls
-execRun ScalapackLU_inv SIZE "$DIR_EXE"/inv
+execRun ScalapackLU SIZE "$DIR_EXE"/sca_lu
+execRun ScalapackLU_sls SIZE "$DIR_EXE"/sca_sls_lu
+execRun ScalapackLU_inv SIZE "$DIR_EXE"/sca_inv_lu
 

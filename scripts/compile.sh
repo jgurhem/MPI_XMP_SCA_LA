@@ -27,13 +27,13 @@ compileGCC binToASCII_mat_row.c
 compileGCC cooInv.c
 compileGCC cooLU.c
 
-compileSCA lu.c
-compileSCA sls.c
-compileSCA inv.c
+compileSCA sca_lu.c
+compileSCA sca_sls_lu.c
+compileSCA sca_inv_lu.c
 compileSCA genBin.c
 
-compileMPI gauss.c
-compileMPI gaussJordan.c
+compileMPI mpi_sls_g.c
+compileMPI mpi_sls_gj.c
 compileMPI mpi_sls_lu.c
 compileMPI mpi_lu.c
-compileMPI mpi_gj_inv.c
+compileMPI mpi_inv_gj.c

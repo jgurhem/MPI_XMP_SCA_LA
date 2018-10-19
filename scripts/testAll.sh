@@ -16,7 +16,7 @@ mat=binToASCII_mat_col
 
 mpirun -n $np "$DIR_EXE"/genBin $size
 
-mpirun -n $np "$DIR_EXE"/lu $size
+mpirun -n $np "$DIR_EXE"/sca_lu $size
 "$DIR_EXE"/$mat a.bin a.dat $size $size
 "$DIR_EXE"/$mat lu.bin lu.dat $size $size
 echo a
@@ -26,7 +26,7 @@ echo lu
 
 echo ""
 echo ""
-mpirun -n $np "$DIR_EXE"/sls $size
+mpirun -n $np "$DIR_EXE"/sca_sls_lu $size
 "$DIR_EXE"/$mat a.bin a.dat $size $size
 "$DIR_EXE"/$mat lu.bin lu.dat $size $size
 "$DIR_EXE"/$mat b.bin b.dat $size $nrhs
@@ -42,7 +42,7 @@ echo r
 
 echo ""
 echo ""
-mpirun -n $np "$DIR_EXE"/inv $size
+mpirun -n $np "$DIR_EXE"/sca_inv_lu $size
 "$DIR_EXE"/$mat a.bin a.dat $size $size
 "$DIR_EXE"/$mat lu.bin lu.dat $size $size
 echo a
