@@ -22,6 +22,23 @@ then
 	success="false"
 fi
 
-echo "Poincare;$nbcore;$nbnode;$app;${lang};$size;$nbcore;$(date +%Y%m%d-%H%M%S);-1;0;0;${t[0]};0;$success;;Compilation -O2" >> ~/results.csv
-echo "Poincare;$nbcore;$nbnode;$app;${lang}L;$size;$nbcore;$(date +%Y%m%d-%H%M%S);-1;0;0;${t[1]};0;$success;;Compilation -O2" >> ~/results.csv
-echo "Poincare;$nbcore;$nbnode;$app;${lang}LS;$size;$nbcore;$(date +%Y%m%d-%H%M%S);-1;0;0;${t[2]};0;$success;;Compilation -O2" >> ~/results.csv
+date=$(date +%Y%m%d-%H%M%S)
+
+{
+#echo "$machine;$nbhosts;$nbnodes;$app;$blocks;$size;$procs;$date;$nbWorker;$tmpGen;$totGen;$tmpNoG;$totNoG;$success;$nbTask"
+cat << EOF
+{"machine":"Poincare",\
+"nb_cores":"$nbcore",\
+"nb_nodes":"$nbnode",\
+"test":"$app",\
+"lang":"$lang",\
+"datasize":"$size",\
+"date":"$date",\
+"time_io":"${t[2]}",\
+"time_i":"${t[1]}",\
+"time_calc":"${t[0]}",\
+"success":"$success",\
+"comment":"Compilation -O2"}
+EOF
+} | tee -a ~/results.csv
+
