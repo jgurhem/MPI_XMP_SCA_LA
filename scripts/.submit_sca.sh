@@ -21,7 +21,7 @@ rm -f *.bin
 DIR_EXE=/gpfshome/mds/staff/jgurhem/mpi/executables
 
 mpirun -n $LOADL_TOTAL_TASKS "$DIR_EXE"/genBin SIZE
-bash "$path/run.sh" ScalapackLU SIZE "$DIR_EXE"/sca_lu NODES PROCS MPI
-bash "$path/run.sh" ScalapackLU_sls SIZE "$DIR_EXE"/sca_sls_lu NODES PROCS MPI
-bash "$path/run.sh" ScalapackLU_inv SIZE "$DIR_EXE"/sca_inv_lu NODES PROCS MPI
+bash "$path/run.sh" blockLU SIZE "$DIR_EXE"/sca_lu NODES PROCS SCA
+bash "$path/run.sh" blockLUsolveLS SIZE "$DIR_EXE"/sca_sls_lu NODES PROCS SCA
+bash "$path/run.sh" LU_inv SIZE "$DIR_EXE"/sca_inv_lu NODES PROCS SCA
 
