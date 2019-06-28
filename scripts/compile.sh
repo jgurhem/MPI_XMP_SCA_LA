@@ -21,6 +21,11 @@ compileMPI() {
     mpicc -Wall "$DIR_SRC"/$1 -o "$DIR_EXE"/${1%.*}
 }
 
+compileXMP() {
+    xmpcc -Wall "$DIR_SRC"/$1 -o "$DIR_EXE"/${1%.*}
+    rm -f ${1%.*}.o
+}
+
 compileGCC cooToMat.c
 compileGCC binToASCII_mat_col.c
 compileGCC binToASCII_mat_row.c
@@ -37,3 +42,8 @@ compileMPI mpi_sls_gj.c
 compileMPI mpi_sls_lu.c
 compileMPI mpi_lu.c
 compileMPI mpi_inv_gj.c
+
+compileXMP xmp_sls_g.c
+compileXMP xmp_sls_gj.c
+compileXMP xmp_sls_lu.c
+compileXMP xmp_lu.c
