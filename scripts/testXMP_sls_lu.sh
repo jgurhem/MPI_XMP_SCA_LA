@@ -20,9 +20,9 @@ compile() {
 
 compile xmp_sls_lu.c
 
-
 mpirun -n $np "$DIR_EXE"/genBin $size
 mpirun -n $np "$DIR_EXE"/xmp_sls_lu $size
 
 check_results -op slsg -one-file -s 1 -b $size -A a.dat -V v.dat -R r.dat -ff coo -print
+check_results -op slsg -one-file -s 1 -b $size -A a.bin -V b.bin -R r.bin -ff binR -print
 

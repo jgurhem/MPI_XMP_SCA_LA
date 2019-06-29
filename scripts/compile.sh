@@ -26,11 +26,7 @@ compileXMP() {
     rm -f ${1%.*}.o
 }
 
-compileGCC cooToMat.c
 compileGCC binToASCII_mat_col.c
-compileGCC binToASCII_mat_row.c
-compileGCC cooInv.c
-compileGCC cooLU.c
 
 compileSCA sca_lu.c
 compileSCA sca_sls_lu.c

@@ -20,19 +20,11 @@ compileMPI() {
 
 compileMPI mpi_lu.c
 
-
-coo=cooToMat
-lu=cooLU
 mat=binToASCII_mat_col
 
 mpirun -n $np "$DIR_EXE"/genBin $size
 mpirun -n $np "$DIR_EXE"/mpi_lu $size
 "$DIR_EXE"/$mat a.bin a.dat $size $size
 "$DIR_EXE"/$mat lu.bin lu.dat $size $size
-echo a
-"$DIR_EXE"/$coo a.dat $size $size
-echo lu ok
-"$DIR_EXE"/$lu a.dat $size
-echo lu
-"$DIR_EXE"/$coo lu.dat $size $size
 
+check_results -op blu -one-file -s 1 -b $size -A a.dat -B lu.dat -ff coo -print

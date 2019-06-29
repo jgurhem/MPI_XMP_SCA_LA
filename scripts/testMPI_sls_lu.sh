@@ -20,9 +20,6 @@ compileMPI() {
 
 compileMPI mpi_sls_lu.c
 
-
-coo=cooToMat
-lu=cooLU
 mat=binToASCII_mat_col
 
 mpirun -n $np "$DIR_EXE"/genBin $size
@@ -32,13 +29,5 @@ mpirun -n $np "$DIR_EXE"/mpi_sls_lu $size | sort
 "$DIR_EXE"/$mat lu.bin lu.dat $size $size
 "$DIR_EXE"/$mat r.bin r.dat $size $nrhs
 "$DIR_EXE"/$mat b.bin b.dat $size $nrhs
-echo a
-"$DIR_EXE"/$coo a.dat $size $size
-echo lu ok
-"$DIR_EXE"/$lu a.dat $size
-echo lu
-"$DIR_EXE"/$coo lu.dat $size $size
-echo b
-"$DIR_EXE"/$coo b.dat $size $nrhs
-echo r
-"$DIR_EXE"/$coo r.dat $size $nrhs
+
+check_results -op slsg -one-file -s 1 -b $size -A a.dat -V b.dat -R r.dat -ff coo -print
