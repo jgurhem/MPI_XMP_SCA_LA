@@ -18,11 +18,11 @@ compileSCA() {
 }
 
 compileMPI() {
-    mpicc -Wall "$DIR_SRC"/$1 -o "$DIR_EXE"/${1%.*}
+    mpicc -Wall "$DIR_SRC"/$1 "$DIR_SRC"/mpiio_dmat.c -o "$DIR_EXE"/${1%.*}
 }
 
 compileXMP() {
-    xmpcc -Wall "$DIR_SRC"/$1 -o "$DIR_EXE"/${1%.*}
+    xmpcc -Wall "$DIR_SRC"/$1 "$DIR_SRC"/mpiio_dmat.c -o "$DIR_EXE"/${1%.*}
     rm -f ${1%.*}.o
 }
 

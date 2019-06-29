@@ -15,7 +15,7 @@ DIR_EXE=~/mpi/executables
 DIR_SRC=~/mpi/sources
 
 compileMPI() {
-    mpicc -Wall "$DIR_SRC"/$1 -o "$DIR_EXE"/${1%.*}
+    mpicc -Wall "$DIR_SRC"/$1 "$DIR_SRC"/mpiio_dmat.c -o "$DIR_EXE"/${1%.*}
 }
 
 compileMPI mpi_dgeaxpxmv.c

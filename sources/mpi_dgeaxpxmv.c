@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include "mpiio_dmat.h"
 
 #define SAVE 1
 
@@ -20,47 +21,6 @@ printMat (double *mat, int size, int rank, int nprocs, char *modif) {
             printf ("%s%d %d %lf\n", modif, rank * nbR + j, i, mat[i + j * size]);
         }
     }
-}
-
-double *
-loadMat (int size, int rank, int nprocs, char *path) {
-    int nbR = size / nprocs;
-    int mod = size % nprocs;
-    double *mat;
-
-    if(rank < mod)
-        nbR++;
-
-    mat = (double *) malloc (nbR * size * sizeof (double));
-
-    MPI_File fh;
-    MPI_Status status;
-    MPI_File_open (MPI_COMM_WORLD, path, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
-    if(rank < mod) {
-        MPI_File_read_at_all (fh, rank * nbR * size * sizeof (double), mat, nbR * size, MPI_DOUBLE, &status);
-    } else {
-        MPI_File_read_at_all (fh, (rank * nbR + mod) * size * sizeof (double), mat, nbR * size, MPI_DOUBLE, &status);
-    }
-    MPI_File_close (&fh);
-    return mat;
-}
-
-void
-saveMat (double *mat, int size, int rank, int nprocs, char *path) {
-    int nbR = size / nprocs;
-    int mod = size % nprocs;
-
-    if(rank < mod)
-        nbR++;
-
-    MPI_File fh;
-    MPI_Status status;
-    MPI_File_open (MPI_COMM_WORLD, path, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
-    if(rank < mod)
-        MPI_File_write_at_all (fh, rank * nbR * size * sizeof (double), mat, nbR * size, MPI_DOUBLE, &status);
-    else
-        MPI_File_write_at_all (fh, (rank * nbR + mod) * size * sizeof (double), mat, nbR * size, MPI_DOUBLE, &status);
-    MPI_File_close (&fh);
 }
 
 void
@@ -176,7 +136,8 @@ testLoad (int size, int world_size, int world_rank) {
         gettimeofday (&ts, 0);
     }
 
-    m = loadMat (size, world_rank, world_size, "a.bin");
+    m = mat_malloc(size, world_rank, world_size);
+    mat_read_block (size, world_rank, world_size, m, "a.bin");
     //printMat (m, size, world_rank, world_size, "a - ");
 
     v = loadVect (size, world_rank, world_size, "b.bin");

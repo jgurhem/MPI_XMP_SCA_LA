@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/time.h>
+#include "mpiio_dmat.h"
 
 #define SAVE 1
 // SAVE==0 => no save
@@ -35,53 +36,6 @@ printMat (double *mat, int size, int nbC, int rank, char *modif) {
             printf ("%s%d %d %lf\n", modif, i, rank + j * nbC, mat[i + j * size]);
         }
     }
-}
-
-double *
-loadMat (int size, int l, int rank, char *path) {
-    int world_size;
-    double *mat;
-    mat = (double *) malloc (l * size * sizeof (double));
-    MPI_Comm_size (MPI_COMM_WORLD, &world_size);
-
-    MPI_File fh;
-    MPI_Status status;
-    MPI_Datatype darray;
-    int array_size[2] = { size, size };
-    int array_distrib[2] = { MPI_DISTRIBUTE_CYCLIC, MPI_DISTRIBUTE_NONE };
-    int array_dargs[2] = { 1, size };
-    int array_psizes[2] = { world_size, 1 };
-    MPI_Type_create_darray (world_size /* size */ , rank, 2 /* dims */ , array_size, array_distrib, array_dargs, array_psizes, MPI_ORDER_C, MPI_DOUBLE, &darray);
-    MPI_Type_commit (&darray);
-
-    MPI_File_open (MPI_COMM_SELF, path, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
-    MPI_File_set_view (fh, 0, MPI_DOUBLE, darray, "native", MPI_INFO_NULL);
-    MPI_File_read_all (fh, mat, l * size, MPI_DOUBLE, &status);
-    MPI_File_close (&fh);
-    MPI_Type_free (&darray);
-    return mat;
-}
-
-void
-saveMat (double *mat, int size, int l, int rank, char *path) {
-    int world_size;
-    MPI_Comm_size (MPI_COMM_WORLD, &world_size);
-
-    MPI_File fh;
-    MPI_Status status;
-    MPI_Datatype darray;
-    int array_size[2] = { size, size };
-    int array_distrib[2] = { MPI_DISTRIBUTE_CYCLIC, MPI_DISTRIBUTE_NONE };
-    int array_dargs[2] = { 1, size };
-    int array_psizes[2] = { world_size, 1 };
-    MPI_Type_create_darray (world_size /* size */ , rank, 2 /* dims */ , array_size, array_distrib, array_dargs, array_psizes, MPI_ORDER_C, MPI_DOUBLE, &darray);
-    MPI_Type_commit (&darray);
-
-    MPI_File_open (MPI_COMM_SELF, path, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
-    MPI_File_set_view (fh, 0, MPI_DOUBLE, darray, "native", MPI_INFO_NULL);
-    MPI_File_write_all (fh, mat, l * size, MPI_DOUBLE, &status);
-    MPI_File_close (&fh);
-    MPI_Type_free (&darray);
 }
 
 double *
@@ -240,14 +194,14 @@ testGen (int size, int nbC, int world_size, int world_rank) {
     m = initMat (size, nbC, world_rank);
     //printMat (m, size,nbC, world_rank, "a - ");
     if (SAVE) {
-        saveMat (m, size, nbC, world_rank, "m1,1.bin");
+        mat_write_cyclic (size, world_rank, world_size, m, "m1,1.bin");
     }
 
     gaussEliminationMPI (size, m, v, nbC, world_size, world_rank);
 
     //printMat (m, size,nbC, world_rank, "m - ");
     if (SAVE) {
-        saveMat (m, size, nbC, world_rank, "m2,2.bin");
+        mat_write_cyclic (size, world_rank, world_size, m, "m2,2.bin");
 
         if (world_rank == 0) {
             //printVect (v,size, "r - ");
@@ -270,7 +224,8 @@ testLoad (int size, int nbC, int world_size, int world_rank) {
         gettimeofday (&ts, 0);
     }
 
-    m = loadMat (size, nbC, world_rank, "a.bin");
+    m = mat_malloc (size, world_rank, world_size);
+    mat_read_cyclic (size, world_rank, world_size, m, "a.bin");
     if (world_rank == 0) {
         v = loadVect (size, "b.bin");
     }
@@ -299,7 +254,7 @@ testLoad (int size, int nbC, int world_size, int world_rank) {
     }
 
     //printMat (m, size,nbC, world_rank, "m - ");
-    saveMat (m, size, nbC, world_rank, "a2.bin");
+    mat_write_cyclic (size, world_rank, world_size, m, "a2.bin");
 
     free (m);
     if (world_rank == 0)

@@ -3,6 +3,7 @@
 #include <mpi.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include "mpiio_dmat.h"
 
 #ifdef COO_OUT
   #include <xmp_io.h>
@@ -14,13 +15,14 @@
 #pragma xmp distribute t(cyclic) onto p
 
 int main(int argc, char ** argv){
-    int i,j,k,n,world;
+    int i,j,k,n,world, rank;
     if (argc == 2) {
         n = atoi (argv[1]);
     } else {
         n = 16;
     }
     world = xmp_all_num_nodes();
+    rank = xmp_node_num() - 1;
 #pragma xmp template_fix t(0:n-1)
 
 #pragma xmp barrier
@@ -39,11 +41,7 @@ int main(int argc, char ** argv){
 
     double btemp, akk, bi;
 
-    MPI_File fhA;
-    MPI_Status status;
-    MPI_File_open (MPI_COMM_SELF, "a.bin", MPI_MODE_RDONLY, MPI_INFO_NULL, &fhA);
-    MPI_File_read_at_all (fhA, (xmp_node_num() - 1) * n * n / world * sizeof (double), A0, n * n / world, MPI_DOUBLE, &status);
-    MPI_File_close (&fhA);
+    mat_read_cyclic(n, rank, world, A0, "a.bin");
 #pragma xmp barrier
 #pragma xmp task on p(1)
     gettimeofday(&t1, 0);
@@ -100,12 +98,11 @@ free(akj2);
 #pragma xmp barrier
 #pragma xmp task on p(1)
 gettimeofday(&t2, 0);
+
+#pragma xmp barrier
+mat_write_cyclic(n, rank, world, A0, "lu.bin");
 #pragma xmp barrier
 
-MPI_File_open (MPI_COMM_SELF, "lu.bin", MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fhA);
-MPI_File_write_at_all (fhA, (xmp_node_num() - 1) * n * n / world * sizeof (double), A0, n * n / world, MPI_DOUBLE, &status);
-MPI_File_close (&fhA);
-#pragma xmp barrier
 #pragma xmp task on p(1)
 {
     gettimeofday(&te, 0);

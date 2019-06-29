@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include "mpiio_dmat.h"
 
 #define SAVE 1
 
@@ -30,27 +31,6 @@ printMat (double *mat, int size, int nbC, int rank, char *modif) {
             printf ("%s%d %d %lf\n", modif, rank * nbC + j, i, mat[i + j * size]);
         }
     }
-}
-
-double *
-loadMat (int size, int l, int rank, char *path) {
-    double *mat;
-    mat = (double *) malloc (l * size * sizeof (double));
-    MPI_File fh;
-    MPI_Status status;
-    MPI_File_open (MPI_COMM_SELF, path, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
-    MPI_File_read_at_all (fh, rank * l * size * sizeof (double), mat, l * size, MPI_DOUBLE, &status);
-    MPI_File_close (&fh);
-    return mat;
-}
-
-void
-saveMat (double *mat, int size, int l, int rank, char *path) {
-    MPI_File fh;
-    MPI_Status status;
-    MPI_File_open (MPI_COMM_SELF, path, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
-    MPI_File_write_at_all (fh, rank * l * size * sizeof (double), mat, l * size, MPI_DOUBLE, &status);
-    MPI_File_close (&fh);
 }
 
 double *
@@ -171,7 +151,8 @@ testLoad (int size, int nbC, int world_size, int world_rank) {
         gettimeofday (&ts, 0);
     }
 
-    m = loadMat (size, nbC, world_rank, "a.bin");
+    m = mat_malloc (size, world_rank, world_size);
+    mat_read_block (size, world_rank, world_size, m, "a.bin");
     v = loadVect (nbC, world_rank, "b.bin");
 
     MPI_Barrier (MPI_COMM_WORLD);
@@ -195,7 +176,7 @@ testLoad (int size, int nbC, int world_size, int world_rank) {
         printf ("%f\n", (te.tv_sec - ts.tv_sec) + (te.tv_usec - ts.tv_usec) / 1000000.0);
     }
     //printVect (v, nbC, world_rank, "r - ");
-    saveMat (m, size, nbC, world_rank, "a2.bin");
+    mat_write_block (size, world_rank, world_size, m, "a2.bin");
 
     free (m);
     free (v);
@@ -212,13 +193,13 @@ testGen (int size, int nbC, int world_size, int world_rank) {
     m = initMat (size, nbC, world_rank);
     //printMat (m, size, nbC, world_rank, "a - ");
     MPI_Barrier (MPI_COMM_WORLD);
-    saveMat (m, size, nbC, world_rank, "m1,1.bin");
+    mat_write_block (size, world_rank, world_size, m, "m1,1.bin");
 
     MPI_Barrier (MPI_COMM_WORLD);
     gaussJordan (size, m, v, nbC, world_size, world_rank);
 
     MPI_Barrier (MPI_COMM_WORLD);
-    saveMat (m, size, nbC, world_rank, "m2,2.bin");
+    mat_write_block (size, world_rank, world_size, m, "m2,2.bin");
     //printVect (v, nbC, world_rank, "r - ");
     saveVect (v, nbC, world_rank, "v2.bin");
 

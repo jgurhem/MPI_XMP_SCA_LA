@@ -15,7 +15,7 @@ DIR_EXE=~/mpi/executables
 DIR_SRC=~/mpi/sources
 
 compile() {
-    xmpcc -DCOO_OUT -Wall "$DIR_SRC"/$1 -o "$DIR_EXE"/${1%.*}
+    xmpcc -DCOO_OUT -Wall "$DIR_SRC"/$1 "$DIR_SRC"/mpiio_dmat.c -o "$DIR_EXE"/${1%.*}
 }
 
 compile xmp_sls_gj.c
