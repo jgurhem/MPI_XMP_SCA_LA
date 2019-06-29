@@ -23,7 +23,7 @@ printMat (double *mat, int size, int rank, int nprocs, char *modif) {
 }
 
 void
-lu (int size, double *m, int nprocs, int rank) {
+lu_col (int size, double *m, int nprocs, int rank) {
     int i, j, k, k_mod, k_loc, i_incr;
     double tmp, *ik;
     int nbR = size / nprocs;
@@ -61,6 +61,45 @@ lu (int size, double *m, int nprocs, int rank) {
 }
 
 void
+lu_row (int size, double *m, int nprocs, int rank) {
+    int i, j, k, k_mod, k_loc, i_incr;
+    double tmp, *akj;
+    int nbR = size / nprocs;
+    int mod = size % nprocs;
+    akj = (double *) malloc (size * sizeof (double));
+
+    if(rank < mod)
+        nbR++;
+
+    for (k = 0; k < size - 1; k++ ){
+        k_loc = k / nprocs;
+        k_mod = k % nprocs;
+        if(rank == k_mod) {
+            for (i = k; i < size; i++){
+                akj[i] = m[k_loc * size + i];
+            }
+        }
+        MPI_Bcast(akj + k, size - k, MPI_DOUBLE, k_mod, MPI_COMM_WORLD);
+
+        if(rank <= k_mod) {
+            k_loc++;
+        }
+
+        for (i = k_loc; i < nbR; i++) {
+            m[i * size + k] /= akj[k];
+        }
+
+        for (i = k_loc; i < nbR; i++){
+            tmp = m[i * size + k];
+            for (j = k + 1; j < size; j++){
+                m[i * size + j] = m[i * size + j] - tmp * akj[j];
+            }
+        }
+    }
+    free(akj);
+}
+
+void
 testLoad (int size, int world_size, int world_rank) {
     double *m;
     struct timeval ts, te, t1, t2;
@@ -78,7 +117,7 @@ testLoad (int size, int world_size, int world_rank) {
         gettimeofday (&t1, 0);
     }
     MPI_Barrier (MPI_COMM_WORLD);
-    lu (size, m, world_size, world_rank);
+    lu_row (size, m, world_size, world_rank);
 
     MPI_Barrier (MPI_COMM_WORLD);
     if (world_rank == 0) {

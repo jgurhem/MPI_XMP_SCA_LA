@@ -20,11 +20,7 @@ compileMPI() {
 
 compileMPI mpi_lu.c
 
-mat=binToASCII_mat_col
-
 mpirun -n $np "$DIR_EXE"/genBin $size
 mpirun -n $np "$DIR_EXE"/mpi_lu $size
-"$DIR_EXE"/$mat a.bin a.dat $size $size
-"$DIR_EXE"/$mat lu.bin lu.dat $size $size
 
-check_results -op blu -one-file -s 1 -b $size -A a.dat -B lu.dat -ff coo -print
+check_results -op blu -one-file -s 1 -b $size -A a.bin -B lu.bin -ff binR -print
