@@ -39,7 +39,7 @@ int main(int argc, char ** argv){
 #pragma xmp align A0[i][*] with t(i)
 #pragma xmp align b0[i] with t(i)
 
-    double btemp, akk, bi;
+    double btemp, bi;
 
     mat_read_cyclic(n, rank, world, A0, "a.bin");
 #pragma xmp barrier
@@ -62,24 +62,12 @@ int main(int argc, char ** argv){
 #pragma xmp barrier
 #endif
 
-
     for (k=0;k<n-1;k++){
-        akk = 0.0;
-#pragma xmp task on t(k)
-        akk=A0[k][k];
-#pragma xmp reduction(+:akk)
-
-
-#pragma xmp loop (i) on t(i)
-        for(i=k+1;i<n;i++){
-            A0[i][k] = A0[i][k] / akk;
-        }
-
-        for(j=k+1;j<n;j++){
+        for(j=k;j<n;j++){
             akj2[j] = 0.0;
         }
 #pragma xmp task on t(k)
-        for(j=k+1;j<n;j++){
+        for(j=k;j<n;j++){
             akj2[j] = A0[k][j];
         }
     MPI_Comm comm = xmp_get_mpi_comm();
@@ -87,6 +75,7 @@ int main(int argc, char ** argv){
 
 #pragma xmp loop (i) on t(i)
         for(i=k+1;i<n;i++){
+            A0[i][k] = A0[i][k] / akj[k];
             for(j=k+1;j<n;j++){
                 A0[i][j] = A0[i][j] - A0[i][k] * akj[j];
             }
