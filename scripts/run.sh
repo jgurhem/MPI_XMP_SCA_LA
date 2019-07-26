@@ -12,7 +12,7 @@ nbnode=$4
 nbcore=$5
 lang=$6
 
-t=( $(mpirun -n $nbcore $exe $size) )
+t=( $(mpirun -n $nbcore $exe -s $size) )
 echo ${t[*]}
 success="true"
 

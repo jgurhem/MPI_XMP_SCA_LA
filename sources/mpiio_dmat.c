@@ -11,6 +11,22 @@ double *mat_malloc(int size, int rank, int nprocs) {
   return mat;
 }
 
+void mat_init(double *mat, int size, int rank, int nprocs) {
+  int nb = size / nprocs;
+  int mod = size % nprocs;
+
+  if (rank < mod)
+    nb++;
+
+  srandom((unsigned)233 * rank);
+  int i, j;
+  for (j = 0; j < nb; j++) {
+    for (i = 0; i < size; i++) {
+      mat[i + j * size] = 100.0 * rand() / RAND_MAX - 50.0;
+    }
+  }
+}
+
 void mat_read_cyclic(int size, int rank, int nprocs, void *mat, char *path) {
   int nbR = size / nprocs;
   int mod = size % nprocs;

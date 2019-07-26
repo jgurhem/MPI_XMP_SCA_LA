@@ -14,15 +14,15 @@ compileGCC() {
 }
 
 compileSCA() {
-    mpicc -Wall "$DIR_SRC"/$1 -o "$DIR_EXE"/${1%.*} -L/gpfs1l/gpfshome/mds/staff/jgurhem/mpi/scalapack/scalapack-2.0.2/ -lscalapack -L/gpfslocal/pub/lapack/build_3.5_gnu47/lib -llapack -lblas -lifcore -Wunused-variable -O2
+    mpicc -Wall "$DIR_SRC"/$1 -o "$DIR_EXE"/${1%.*} "$DIR_SRC"/parse_args.c -L/gpfs1l/gpfshome/mds/staff/jgurhem/mpi/scalapack/scalapack-2.0.2/ -lscalapack -L/gpfslocal/pub/lapack/build_3.5_gnu47/lib -llapack -lblas -lifcore -Wunused-variable -O2
 }
 
 compileMPI() {
-    mpicc -Wall "$DIR_SRC"/$1 "$DIR_SRC"/mpiio_dmat.c -o "$DIR_EXE"/${1%.*}
+    mpicc -Wall "$DIR_SRC"/$1 "$DIR_SRC"/mpiio_dmat.c "$DIR_SRC"/parse_args.c -o "$DIR_EXE"/${1%.*}
 }
 
 compileXMP() {
-    xmpcc -Wall "$DIR_SRC"/$1 "$DIR_SRC"/mpiio_dmat.c -o "$DIR_EXE"/${1%.*}
+    xmpcc -Wall "$DIR_SRC"/$1 "$DIR_SRC"/mpiio_dmat.c "$DIR_SRC"/parse_args.c -o "$DIR_EXE"/${1%.*}
     rm -f ${1%.*}.o
 }
 

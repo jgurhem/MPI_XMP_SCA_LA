@@ -1,4 +1,5 @@
 #include "mpiio_dmat.h"
+#include "parse_args.h"
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,11 +17,8 @@
 
 int main(int argc, char **argv) {
   int i, j, k, n, world, rank;
-  if (argc == 2) {
-    n = atoi(argv[1]);
-  } else {
-    n = 16;
-  }
+  char *fileA, *fileLU;
+  parse_args_2mat(argc, argv, &n, &fileA, &fileLU);
   world = xmp_all_num_nodes();
   rank = xmp_node_num() - 1;
 #pragma xmp template_fix t(0 : n - 1)
@@ -39,8 +37,11 @@ int main(int argc, char **argv) {
 #pragma xmp align b0[i] with t(i)
 
   double btemp, bi;
-
-  mat_read_cyclic(n, rank, world, A0, "a.bin");
+  if (fileA == 0) {
+    mat_init(A0, n, rank, world);
+  } else {
+    mat_read_cyclic(n, rank, world, A0, fileA);
+  }
 #pragma xmp barrier
 #pragma xmp task on p(1)
   gettimeofday(&t1, 0);
@@ -88,7 +89,9 @@ int main(int argc, char **argv) {
   gettimeofday(&t2, 0);
 
 #pragma xmp barrier
-  mat_write_cyclic(n, rank, world, A0, "lu.bin");
+  if (fileLU != 0) {
+    mat_write_cyclic(n, rank, world, A0, fileLU);
+  }
 #pragma xmp barrier
 
 #pragma xmp task on p(1)

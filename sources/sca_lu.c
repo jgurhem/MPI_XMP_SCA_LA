@@ -1,3 +1,4 @@
+#include "parse_args.h"
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -119,11 +120,8 @@ double *importVect(int size, int nb, int nrhs, int nc, int nr, int npcol,
 int main(int argc, char **argv) {
 
   int n;
-  if (argc == 2) {
-    n = atoi(argv[1]);
-  } else {
-    n = 16;
-  }
+  char *fileA, *fileLU;
+  parse_args_2mat(argc, argv, &n, &fileA, &fileLU);
 
   int zero = 0, uno = 1;
   // MPI
@@ -170,7 +168,16 @@ int main(int argc, char **argv) {
   }
   MPI_Barrier(MPI_COMM_WORLD);
 
-  A = importMat(n, nb, nc, nr, npcol, nprow, "a.bin");
+  if (fileA == NULL) {
+    A = (double *)malloc(nr * nc * sizeof(double));
+    srandom((unsigned)233 * myrank);
+    int j;
+    for (j = 0; j < nr * nc; j++) {
+      A[j] = 100.0 * rand() / RAND_MAX - 50.0;
+    }
+  } else {
+    A = importMat(n, nb, nc, nr, npcol, nprow, fileA);
+  }
 
   MPI_Barrier(MPI_COMM_WORLD);
   if (myrank == 0) {
@@ -187,7 +194,9 @@ int main(int argc, char **argv) {
   }
   MPI_Barrier(MPI_COMM_WORLD);
 
-  exportMat(A, n, nb, nc, nr, npcol, nprow, "lu.bin");
+  if (fileLU != 0) {
+    exportMat(A, n, nb, nc, nr, npcol, nprow, fileLU);
+  }
 
   MPI_Barrier(MPI_COMM_WORLD);
   if (myrank == 0) {

@@ -1,4 +1,5 @@
 #include "mpiio_dmat.h"
+#include "parse_args.h"
 #include <assert.h>
 #include <mpi.h>
 #include <stdio.h>
@@ -96,7 +97,22 @@ void lu_row(int size, double *m, int nprocs, int rank) {
   free(akj);
 }
 
-void testLoad(int size, int world_size, int world_rank) {
+int main(int argc, char **argv) {
+  // Initialize the MPI environment
+  MPI_Init(NULL, NULL);
+
+  int size;
+  char *fileA, *fileLU;
+  parse_args_2mat(argc, argv, &size, &fileA, &fileLU);
+
+  // Get the number of processes
+  int world_size;
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+  // Get the rank of the process
+  int world_rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
   double *m;
   struct timeval ts, te, t1, t2;
 
@@ -106,13 +122,17 @@ void testLoad(int size, int world_size, int world_rank) {
   }
 
   m = mat_malloc(size, world_rank, world_size);
-  mat_read_cyclic(size, world_rank, world_size, m, "a.bin");
+  if (fileA == 0) {
+    mat_init(m, size, world_rank, world_size);
+  } else {
+    mat_read_cyclic(size, world_rank, world_size, m, fileA);
+  }
 
   MPI_Barrier(MPI_COMM_WORLD);
   if (world_rank == 0) {
     gettimeofday(&t1, 0);
   }
-  MPI_Barrier(MPI_COMM_WORLD);
+
   lu_row(size, m, world_size, world_rank);
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -120,7 +140,9 @@ void testLoad(int size, int world_size, int world_rank) {
     gettimeofday(&t2, 0);
   }
   MPI_Barrier(MPI_COMM_WORLD);
-  mat_write_cyclic(size, world_rank, world_size, m, "lu.bin");
+  if (fileLU != 0) {
+    mat_write_cyclic(size, world_rank, world_size, m, fileLU);
+  }
   MPI_Barrier(MPI_COMM_WORLD);
   if (world_rank == 0) {
     gettimeofday(&te, 0);
@@ -133,28 +155,6 @@ void testLoad(int size, int world_size, int world_rank) {
   }
 
   free(m);
-}
-
-int main(int argc, char **argv) {
-  // Initialize the MPI environment
-  MPI_Init(NULL, NULL);
-
-  int size;
-  if (argc == 2) {
-    size = atoi(argv[1]);
-  } else {
-    size = 16;
-  }
-
-  // Get the number of processes
-  int world_size;
-  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-
-  // Get the rank of the process
-  int world_rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-
-  testLoad(size, world_size, world_rank);
 
   // Finalize the MPI environment.
   MPI_Finalize();
