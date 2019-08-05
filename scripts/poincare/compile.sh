@@ -7,7 +7,7 @@ DIR_SRC=~/mpi/sources
 
 rm -fv "$DIR_EXE"/*
 
-. ~/mpi/scripts/load.sh
+. ~/mpi/scripts/poincare/load_env.sh
 
 compileGCC() {
     gcc -o "$DIR_EXE"/${1%.*} "$DIR_UTILS"/$1 -std=c99
