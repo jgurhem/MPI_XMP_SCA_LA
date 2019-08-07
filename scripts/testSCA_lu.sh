@@ -1,7 +1,7 @@
 #!/bin/sh -e
 set -e
 
-. ~/mpi/scripts/load.sh
+. poincare/load_env.sh
 
 cd /gpfsdata/jgurhem/res/
 rm -rf *.bin *.dat core.*
