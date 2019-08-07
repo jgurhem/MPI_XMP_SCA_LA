@@ -1,4 +1,5 @@
 #include "mpiio_dmat.h"
+#include "parse_args.h"
 #include <assert.h>
 #include <mpi.h>
 #include <stdio.h>
@@ -104,7 +105,22 @@ double *gaussJordan_inv(int size, double *m, int nprocs, int rank) {
   return B;
 }
 
-void testLoad(int size, int world_size, int world_rank) {
+int main(int argc, char **argv) {
+  // Initialize the MPI environment
+  MPI_Init(NULL, NULL);
+
+  int size;
+  char *fileA, *fileI;
+  parse_args_2mat(argc, argv, &size, &fileA, &fileI);
+
+  // Get the number of processes
+  int world_size;
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+  // Get the rank of the process
+  int world_rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
   double *inv, *m;
   struct timeval ts, te, t1, t2;
 
@@ -114,7 +130,11 @@ void testLoad(int size, int world_size, int world_rank) {
   }
 
   m = mat_malloc(size, world_rank, world_size);
-  mat_read_block(size, world_rank, world_size, m, "a.bin");
+  if (fileA == 0) {
+    mat_init(m, size, world_rank, world_size);
+  } else {
+    mat_read_block(size, world_rank, world_size, m, fileA);
+  }
 
   MPI_Barrier(MPI_COMM_WORLD);
   if (world_rank == 0) {
@@ -128,7 +148,9 @@ void testLoad(int size, int world_size, int world_rank) {
     gettimeofday(&t2, 0);
   }
   MPI_Barrier(MPI_COMM_WORLD);
-  mat_write_block(size, world_rank, world_size, inv, "inv.bin");
+  if (fileI != 0) {
+    mat_write_block(size, world_rank, world_size, inv, fileI);
+  }
   MPI_Barrier(MPI_COMM_WORLD);
   if (world_rank == 0) {
     gettimeofday(&te, 0);
@@ -142,28 +164,6 @@ void testLoad(int size, int world_size, int world_rank) {
 
   free(m);
   free(inv);
-}
-
-int main(int argc, char **argv) {
-  // Initialize the MPI environment
-  MPI_Init(NULL, NULL);
-
-  int size;
-  if (argc == 2) {
-    size = atoi(argv[1]);
-  } else {
-    size = 16;
-  }
-
-  // Get the number of processes
-  int world_size;
-  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-
-  // Get the rank of the process
-  int world_rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-
-  testLoad(size, world_size, world_rank);
 
   // Finalize the MPI environment.
   MPI_Finalize();

@@ -27,6 +27,29 @@ void mat_init(double *mat, int size, int rank, int nprocs) {
   }
 }
 
+double *vect_malloc(int size, int rank, int nprocs) {
+  int nbR = size / nprocs;
+  int mod = size % nprocs;
+  double *v;
+  if (rank < mod)
+    nbR++;
+  v = (double *)malloc(nbR * sizeof(double));
+  return v;
+}
+
+void vect_init(double *v, int size, int rank, int nprocs) {
+  int nbR = size / nprocs;
+  int mod = size % nprocs;
+  if (rank < mod)
+    nbR++;
+
+  srandom((unsigned)23 * rank);
+  int i;
+  for (i = 0; i < nbR; i++) {
+    v[i] = 100.0 * rand() / RAND_MAX;
+  }
+}
+
 void mat_read_cyclic(int size, int rank, int nprocs, void *mat, char *path) {
   int nbR = size / nprocs;
   int mod = size % nprocs;

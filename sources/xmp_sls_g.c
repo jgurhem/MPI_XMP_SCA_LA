@@ -1,4 +1,5 @@
 #include "mpiio_dmat.h"
+#include "parse_args.h"
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,11 +17,8 @@
 
 int main(int argc, char **argv) {
   int i, j, k, n, world, rank;
-  if (argc == 2) {
-    n = atoi(argv[1]);
-  } else {
-    n = 16;
-  }
+  char *fileA0, *fileB0, *fileV, *fileR;
+  parse_args_2mat_2vect(argc, argv, &n, &fileA0, &fileB0, &fileV, &fileR);
   world = xmp_all_num_nodes();
   rank = xmp_node_num() - 1;
 #pragma xmp template_fix t(0 : n - 1)
@@ -40,8 +38,16 @@ int main(int argc, char **argv) {
 
   double btemp, akk;
 
-  mat_read_cyclic(n, rank, world, A0, "a.bin");
-  vect_read_cyclic(n, rank, world, b0, "b.bin");
+  if (fileA0 == 0) {
+    mat_init(A0, n, rank, world);
+  } else {
+    mat_read_cyclic(n, rank, world, A0, fileA0);
+  }
+  if (fileV == 0) {
+    vect_init(b0, n, rank, world);
+  } else {
+    vect_read_cyclic(n, rank, world, b0, fileV);
+  }
 #pragma xmp barrier
 
 #ifdef COO_OUT
@@ -123,7 +129,8 @@ int main(int argc, char **argv) {
   gettimeofday(&t2, 0);
 #pragma xmp barrier
 
-  vect_write_cyclic(n, rank, world, b0, "r.bin");
+  if (fileR != 0)
+    vect_write_cyclic(n, rank, world, b0, fileR);
 #pragma xmp barrier
 #pragma xmp task on p(1)
   {

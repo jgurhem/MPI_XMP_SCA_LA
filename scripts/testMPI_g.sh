@@ -15,7 +15,7 @@ DIR_EXE=~/mpi/executables
 DIR_SRC=~/mpi/sources
 
 compileMPI() {
-    mpicc -Wall "$DIR_SRC"/$1 "$DIR_SRC"/mpiio_dmat.c -o "$DIR_EXE"/${1%.*}
+    mpicc -Wall "$DIR_SRC"/$1 "$DIR_SRC"/mpiio_dmat.c "$DIR_SRC"/parse_args.c -o "$DIR_EXE"/${1%.*}
 }
 
 compileMPI mpi_sls_g.c
@@ -23,7 +23,7 @@ compileMPI mpi_sls_g.c
 mat=binToASCII_mat_col
 
 mpirun -n $np "$DIR_EXE"/genBin $size
-mpirun -n $np "$DIR_EXE"/mpi_sls_g $size
+mpirun -n $np "$DIR_EXE"/mpi_sls_g -s $size -A a.bin -V b.bin -R r.bin
 "$DIR_EXE"/$mat a.bin a.dat $size $size
 "$DIR_EXE"/$mat b.bin b.dat $size $nrhs
 "$DIR_EXE"/$mat r.bin r.dat $size $nrhs

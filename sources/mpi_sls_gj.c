@@ -1,27 +1,10 @@
 #include "mpiio_dmat.h"
+#include "parse_args.h"
 #include <assert.h>
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-
-#define SAVE 1
-
-double *initMat(int size, int l, int rank) {
-  // block distribution of the rows
-  double *mat;
-  mat = (double *)malloc(l * size * sizeof(double));
-  srandom((unsigned)233 * rank);
-  int i, j;
-  for (j = 0; j < l; j++) {
-    for (i = 0; i < size; i++) {
-      mat[i + j * size] = 100.0 * rand() / RAND_MAX;
-      ;
-      // printf("a %d %d %lf\n", i, rank+l*j, mat[i*size+j]);
-    }
-  }
-  return mat;
-}
 
 void printMat(double *mat, int size, int nbC, int rank, char *modif) {
   int i, j;
@@ -140,83 +123,13 @@ void gaussJordan(int size, double *m, double *v, int nbC, int world_size,
   }
 }
 
-void testLoad(int size, int nbC, int world_size, int world_rank) {
-  double *v, *m;
-  struct timeval ts, te, t1, t2;
-
-  MPI_Barrier(MPI_COMM_WORLD);
-  if (world_rank == 0) {
-    gettimeofday(&ts, 0);
-  }
-
-  m = mat_malloc(size, world_rank, world_size);
-  mat_read_block(size, world_rank, world_size, m, "a.bin");
-  v = loadVect(nbC, world_rank, "b.bin");
-
-  MPI_Barrier(MPI_COMM_WORLD);
-  if (world_rank == 0) {
-    gettimeofday(&t1, 0);
-  }
-  MPI_Barrier(MPI_COMM_WORLD);
-  gaussJordan(size, m, v, nbC, world_size, world_rank);
-
-  MPI_Barrier(MPI_COMM_WORLD);
-  if (world_rank == 0) {
-    gettimeofday(&t2, 0);
-  }
-  MPI_Barrier(MPI_COMM_WORLD);
-  saveVect(v, nbC, world_rank, "r.bin");
-  MPI_Barrier(MPI_COMM_WORLD);
-  if (world_rank == 0) {
-    gettimeofday(&te, 0);
-    printf("%f\n",
-           (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / 1000000.0);
-    printf("%f\n",
-           (t2.tv_sec - ts.tv_sec) + (t2.tv_usec - ts.tv_usec) / 1000000.0);
-    printf("%f\n",
-           (te.tv_sec - ts.tv_sec) + (te.tv_usec - ts.tv_usec) / 1000000.0);
-  }
-  // printVect (v, nbC, world_rank, "r - ");
-  mat_write_block(size, world_rank, world_size, m, "a2.bin");
-
-  free(m);
-  free(v);
-}
-
-void testGen(int size, int nbC, int world_size, int world_rank) {
-  double *v, *m;
-
-  v = initVect(nbC, world_rank);
-  printVect(v, nbC, world_rank, "v - ");
-  saveVect(v, nbC, world_rank, "v1.bin");
-
-  m = initMat(size, nbC, world_rank);
-  // printMat (m, size, nbC, world_rank, "a - ");
-  MPI_Barrier(MPI_COMM_WORLD);
-  mat_write_block(size, world_rank, world_size, m, "m1,1.bin");
-
-  MPI_Barrier(MPI_COMM_WORLD);
-  gaussJordan(size, m, v, nbC, world_size, world_rank);
-
-  MPI_Barrier(MPI_COMM_WORLD);
-  mat_write_block(size, world_rank, world_size, m, "m2,2.bin");
-  // printVect (v, nbC, world_rank, "r - ");
-  saveVect(v, nbC, world_rank, "v2.bin");
-
-  free(m);
-  free(v);
-}
-
 int main(int argc, char **argv) {
   // Initialize the MPI environment
   MPI_Init(NULL, NULL);
 
   int size;
-  if (argc == 2) {
-    size = atoi(argv[1]);
-  } else {
-    size = 16;
-  }
+  char *fileA, *fileB, *fileV, *fileR;
+  parse_args_2mat_2vect(argc, argv, &size, &fileA, &fileB, &fileV, &fileR);
 
   // Get the number of processes
   int world_size;
@@ -230,7 +143,57 @@ int main(int argc, char **argv) {
   int nbC = size / world_size;
   assert(nbC * world_size == size);
 
-  testLoad(size, nbC, world_size, world_rank);
+  double *v, *m;
+  struct timeval ts, te, t1, t2;
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  if (world_rank == 0) {
+    gettimeofday(&ts, 0);
+  }
+
+  m = mat_malloc(size, world_rank, world_size);
+  if (fileA == 0) {
+    mat_init(m, size, world_rank, world_size);
+  } else {
+    mat_read_block(size, world_rank, world_size, m, fileA);
+  }
+  if (fileV == 0) {
+    v = initVect(nbC, world_rank);
+  } else {
+    v = loadVect(nbC, world_rank, fileV);
+  }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  if (world_rank == 0) {
+    gettimeofday(&t1, 0);
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
+  gaussJordan(size, m, v, nbC, world_size, world_rank);
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  if (world_rank == 0) {
+    gettimeofday(&t2, 0);
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
+  if (fileR != 0) {
+    saveVect(v, nbC, world_rank, fileR);
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
+  if (world_rank == 0) {
+    gettimeofday(&te, 0);
+    printf("%f\n",
+           (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / 1000000.0);
+    printf("%f\n",
+           (t2.tv_sec - ts.tv_sec) + (t2.tv_usec - ts.tv_usec) / 1000000.0);
+    printf("%f\n",
+           (te.tv_sec - ts.tv_sec) + (te.tv_usec - ts.tv_usec) / 1000000.0);
+  }
+  if (fileB != 0) {
+    mat_write_block(size, world_rank, world_size, m, fileB);
+  }
+
+  free(m);
+  free(v);
 
   // Finalize the MPI environment.
   MPI_Finalize();

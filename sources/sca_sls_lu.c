@@ -1,3 +1,4 @@
+#include "parse_args.h"
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -119,11 +120,8 @@ double *importVect(int size, int nb, int nrhs, int nc, int nr, int npcol,
 int main(int argc, char **argv) {
 
   int n, nrhs = 1;
-  if (argc == 2) {
-    n = atoi(argv[1]);
-  } else {
-    n = 16;
-  }
+  char *fileA, *fileB, *fileV, *fileR;
+  parse_args_2mat_2vect(argc, argv, &n, &fileA, &fileB, &fileV, &fileR);
 
   int zero = 0, uno = 1;
   // MPI
@@ -172,8 +170,26 @@ int main(int argc, char **argv) {
   }
   MPI_Barrier(MPI_COMM_WORLD);
 
-  A = importMat(n, nb, nc, nr, npcol, nprow, "a.bin");
-  b = importVect(n, nrhs, nb, ncb, nr, npcol, nprow, "b.bin");
+  if (fileA == NULL) {
+    A = (double *)malloc(nr * nc * sizeof(double));
+    srandom((unsigned)233 * myrank);
+    int j;
+    for (j = 0; j < nr * nc; j++) {
+      A[j] = 100.0 * rand() / RAND_MAX - 50.0;
+    }
+  } else {
+    A = importMat(n, nb, nc, nr, npcol, nprow, fileA);
+  }
+  if (fileV == NULL) {
+    b = (double *)malloc(nr * nc * sizeof(double));
+    srandom((unsigned)23 * myrank);
+    int j;
+    for (j = 0; j < nr * nc; j++) {
+      b[j] = 100.0 * rand() / RAND_MAX - 50.0;
+    }
+  } else {
+    b = importVect(n, nrhs, nb, ncb, nr, npcol, nprow, fileV);
+  }
 
   MPI_Barrier(MPI_COMM_WORLD);
   if (myrank == 0) {
@@ -190,7 +206,9 @@ int main(int argc, char **argv) {
   }
   MPI_Barrier(MPI_COMM_WORLD);
 
-  exportVect(b, n, nrhs, nb, ncb, nr, npcol, nprow, "r.bin");
+  if (fileR != NULL) {
+    exportVect(b, n, nrhs, nb, ncb, nr, npcol, nprow, fileR);
+  }
 
   MPI_Barrier(MPI_COMM_WORLD);
   if (myrank == 0) {

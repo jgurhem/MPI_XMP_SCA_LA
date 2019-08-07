@@ -1,4 +1,5 @@
 #include "mpiio_dmat.h"
+#include "parse_args.h"
 #include <assert.h>
 #include <fcntl.h>
 #include <mpi.h>
@@ -8,24 +9,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-#define SAVE 1
-// SAVE==0 => no save
-
-double *initMat(int size, int l, int rank) {
-  double *mat;
-  int i, j;
-  mat = (double *)malloc(l * size * sizeof(double));
-  srandom((unsigned)233 * rank);
-  for (j = 0; j < l; j++) {
-    for (i = 0; i < size; i++) {
-      mat[i + j * size] = 100.0 * rand() / RAND_MAX;
-      ;
-      // printf("a %d %d %lf\n", i, rank+l*j, mat[i*size+j]);
-    }
-  }
-  return mat;
-}
 
 void printMat(double *mat, int size, int nbC, int rank, char *modif) {
   int i, j;
@@ -174,41 +157,26 @@ void gaussEliminationMPI(int size, double *m, double *v, int nbC,
   }
 }
 
-void testGen(int size, int nbC, int world_size, int world_rank) {
-  double *v, *m;
+int main(int argc, char **argv) {
+  // Initialize the MPI environment
+  MPI_Init(NULL, NULL);
 
-  if (world_rank == 0) {
-    v = initVect(size);
-    // printVect (v, size,"v - ");
-    if (SAVE) {
-      saveVect(v, size, "v1.bin");
-    }
-  }
+  int size;
+  char *fileA, *fileB, *fileV, *fileR;
+  parse_args_2mat_2vect(argc, argv, &size, &fileA, &fileB, &fileV, &fileR);
 
-  m = initMat(size, nbC, world_rank);
-  // printMat (m, size,nbC, world_rank, "a - ");
-  if (SAVE) {
-    mat_write_cyclic(size, world_rank, world_size, m, "m1,1.bin");
-  }
+  // Get the number of processes
+  int world_size;
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
-  gaussEliminationMPI(size, m, v, nbC, world_size, world_rank);
+  // Get the rank of the process
+  int world_rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
-  // printMat (m, size,nbC, world_rank, "m - ");
-  if (SAVE) {
-    mat_write_cyclic(size, world_rank, world_size, m, "m2,2.bin");
+  // number of columns of the matrix distributed per processes
+  int nbC = size / world_size;
+  assert(nbC * world_size == size);
 
-    if (world_rank == 0) {
-      // printVect (v,size, "r - ");
-      saveVect(v, size, "v2.bin");
-    }
-  }
-
-  free(m);
-  if (world_rank == 0)
-    free(v);
-}
-
-void testLoad(int size, int nbC, int world_size, int world_rank) {
   double *v, *m;
   struct timeval ts, te, t1, t2;
 
@@ -218,9 +186,17 @@ void testLoad(int size, int nbC, int world_size, int world_rank) {
   }
 
   m = mat_malloc(size, world_rank, world_size);
-  mat_read_cyclic(size, world_rank, world_size, m, "a.bin");
+  if (fileA == 0) {
+    mat_init(m, size, world_rank, world_size);
+  } else {
+    mat_read_cyclic(size, world_rank, world_size, m, fileA);
+  }
   if (world_rank == 0) {
-    v = loadVect(size, "b.bin");
+    if (fileV == 0) {
+      v = initVect(size);
+    } else {
+      v = loadVect(size, fileV);
+    }
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -239,7 +215,9 @@ void testLoad(int size, int nbC, int world_size, int world_rank) {
 
   if (world_rank == 0) {
     // printVect (v,size, "r - ");
-    saveVect(v, size, "r.bin");
+    if (fileR != 0) {
+      saveVect(v, size, fileR);
+    }
     gettimeofday(&te, 0);
     printf("%f\n",
            (t2.tv_sec - t1.tv_sec) + (t2.tv_usec - t1.tv_usec) / 1000000.0);
@@ -250,37 +228,13 @@ void testLoad(int size, int nbC, int world_size, int world_rank) {
   }
 
   // printMat (m, size,nbC, world_rank, "m - ");
-  mat_write_cyclic(size, world_rank, world_size, m, "a2.bin");
+  if (fileB != 0) {
+    mat_write_cyclic(size, world_rank, world_size, m, fileB);
+  }
 
   free(m);
   if (world_rank == 0)
     free(v);
-}
-
-int main(int argc, char **argv) {
-  // Initialize the MPI environment
-  MPI_Init(NULL, NULL);
-
-  int size;
-  if (argc == 2) {
-    size = atoi(argv[1]);
-  } else {
-    size = 16;
-  }
-
-  // Get the number of processes
-  int world_size;
-  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-
-  // Get the rank of the process
-  int world_rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-
-  // number of columns of the matrix distributed per processes
-  int nbC = size / world_size;
-  assert(nbC * world_size == size);
-
-  testLoad(size, nbC, world_size, world_rank);
 
   // Finalize the MPI environment.
   MPI_Finalize();
