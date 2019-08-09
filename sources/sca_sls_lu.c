@@ -121,7 +121,11 @@ int main(int argc, char **argv) {
 
   int n, nrhs = 1;
   char *fileA, *fileB, *fileV, *fileR;
-  parse_args_2mat_2vect(argc, argv, &n, &fileA, &fileB, &fileV, &fileR);
+  char docstr[] = "Linear system solution with LU factorization: "
+                  "Ax=LUx=v\nUsage : -s size -A <path to binary file "
+                  "containing A> -V <path to binary file containing v> -R "
+                  "<path to binary file that will contain x>\n";
+  parse_args_2mat_2vect(argc, argv, docstr, &n, &fileA, &fileB, &fileV, &fileR);
 
   int zero = 0, uno = 1;
   // MPI

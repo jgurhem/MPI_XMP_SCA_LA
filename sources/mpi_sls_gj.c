@@ -129,7 +129,12 @@ int main(int argc, char **argv) {
 
   int size;
   char *fileA, *fileB, *fileV, *fileR;
-  parse_args_2mat_2vect(argc, argv, &size, &fileA, &fileB, &fileV, &fileR);
+  char docstr[] = "Linear system solution with Gauss-Jordan elimination : "
+                  "Ax=v\nUsage : -s size -A <path to binary file "
+                  "containing A> -V <path to binary file containing v> -R "
+                  "<path to binary file that will contain x>\n";
+  parse_args_2mat_2vect(argc, argv, docstr, &size, &fileA, &fileB, &fileV,
+                        &fileR);
 
   // Get the number of processes
   int world_size;

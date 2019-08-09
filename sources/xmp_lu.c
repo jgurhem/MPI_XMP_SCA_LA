@@ -18,7 +18,10 @@
 int main(int argc, char **argv) {
   int i, j, k, n, world, rank;
   char *fileA, *fileLU;
-  parse_args_2mat(argc, argv, &n, &fileA, &fileLU);
+  char docstr[] =
+      "LU factorization : A = L*U\nUsage : -s size -A <path to binary file "
+      "containing A> -B <path to binary file that will contain LU>\n";
+  parse_args_2mat(argc, argv, docstr, &n, &fileA, &fileLU);
   world = xmp_all_num_nodes();
   rank = xmp_node_num() - 1;
 #pragma xmp template_fix t(0 : n - 1)

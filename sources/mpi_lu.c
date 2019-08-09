@@ -103,7 +103,10 @@ int main(int argc, char **argv) {
 
   int size;
   char *fileA, *fileLU;
-  parse_args_2mat(argc, argv, &size, &fileA, &fileLU);
+  char docstr[] =
+      "LU factorization : A = L*U\nUsage : -s size -A <path to binary file "
+      "containing A> -B <path to binary file that will contain LU>\n";
+  parse_args_2mat(argc, argv, docstr, &size, &fileA, &fileLU);
 
   // Get the number of processes
   int world_size;

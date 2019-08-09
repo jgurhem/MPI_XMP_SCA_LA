@@ -121,7 +121,10 @@ int main(int argc, char **argv) {
 
   int n;
   char *fileA, *fileLU;
-  parse_args_2mat(argc, argv, &n, &fileA, &fileLU);
+  char docstr[] =
+      "LU factorization : A = L*U\nUsage : -s size -A <path to binary file "
+      "containing A> -B <path to binary file that will contain LU>\n";
+  parse_args_2mat(argc, argv, docstr, &n, &fileA, &fileLU);
 
   int zero = 0, uno = 1;
   // MPI

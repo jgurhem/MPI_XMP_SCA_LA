@@ -121,7 +121,11 @@ int main(int argc, char **argv) {
 
   int n;
   char *fileA, *fileI;
-  parse_args_2mat(argc, argv, &n, &fileA, &fileI);
+  char docstr[] =
+      "Matrix Inversion with LU factorization\nUsage : -s size -A <path to "
+      "binary file "
+      "containing A> -B <path to binary file that will contain the inverse>\n";
+  parse_args_2mat(argc, argv, docstr, &n, &fileA, &fileI);
 
   int zero = 0;
   // MPI

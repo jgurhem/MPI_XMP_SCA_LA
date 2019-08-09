@@ -111,7 +111,10 @@ int main(int argc, char **argv) {
 
   int size;
   char *fileA, *fileI;
-  parse_args_2mat(argc, argv, &size, &fileA, &fileI);
+  char docstr[] =
+      "Matrix Inversion\nUsage : -s size -A <path to binary file "
+      "containing A> -B <path to binary file that will contain the inverse>\n";
+  parse_args_2mat(argc, argv, docstr, &size, &fileA, &fileI);
 
   // Get the number of processes
   int world_size;

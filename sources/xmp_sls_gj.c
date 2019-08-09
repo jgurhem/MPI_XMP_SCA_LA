@@ -18,7 +18,12 @@
 int main(int argc, char **argv) {
   int i, j, k, n, world, rank;
   char *fileA0, *fileB0, *fileV, *fileR;
-  parse_args_2mat_2vect(argc, argv, &n, &fileA0, &fileB0, &fileV, &fileR);
+  char docstr[] = "Linear system solution with Gauss-Jordan elimination: "
+                  "Ax=v\nUsage : -s size -A <path to binary file "
+                  "containing A> -V <path to binary file containing v> -R "
+                  "<path to binary file that will contain x>\n";
+  parse_args_2mat_2vect(argc, argv, docstr, &n, &fileA0, &fileB0, &fileV,
+                        &fileR);
   world = xmp_all_num_nodes();
   rank = xmp_node_num() - 1;
 #pragma xmp template_fix t(0 : n - 1)
